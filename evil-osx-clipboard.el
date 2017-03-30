@@ -66,45 +66,24 @@
 
 ;;; Code:
 
-;; Note:
-;;  I still don't really understand package managment in emacs, and
-;;  especially how it interacts with spacemacs.
-;;
-;;  This use-package call appears to be an incorrect way of ensuring
-;;  dependencies load. It throws a warning when you first compile,
-;;  but then it does fine as long as your setup does, in fact, include
-;;  evil and pbcopy. Interestingly, evil doens't throw a warning, only
-;;  pbcopy.
-;;
-;;  If I change this to require, it errs out on the require to pbcopy,
-;;  which might be because the load path isn't set correctly or something.
-;;
-;;  For the moment, I can live with the warning, but if someone
-;;  knows the correct way to do it (perhaps defining all my functions in
-;;  a conditional block) then pull requests are welcome.
-(use-package pbcopy
-  :ensure t)
-(use-package evil
-  :ensure t)
+;; Note: if you ever need to define an evil operator, check version
+;; control of this file - the original version of this function was
+;; a define-evil-operator macro call
 
 ;;;###autoload
-(evil-define-operator evil-osx-clipboard/copy
-                      (beg end type register yank-handler)
+(defun evil-osx-clipboard/copy (start end)
   "copy to the system clipboard"
-  (turn-on-pbcopy)
-  (evil-yank beg end type register yank-handler)
-  (turn-off-pbcopy)
+  (interactive "r")
+  (shell-command-on-region start end "pbcopy")
   )
 
+
 ;;;###autoload
-(defun evil-osx-clipboard/paste (&optional arg)
+(defun evil-osx-clipboard/paste ()
   "paste from the system clipboard"
   (interactive)
-  (turn-on-pbcopy)
-  (yank arg)
-  (turn-off-pbcopy)
+  (insert (shell-command-to-string "pbpaste"))
   )
-
 
 ;;;###autoload
 (defun evil-osx-clipboard/set-osx-defaults ()
